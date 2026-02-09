@@ -7,6 +7,9 @@ import { registerAnalysisTools } from './tools/analysis-tools';
 import { registerSchReadTools } from './tools/sch-read-tools';
 import { registerSchWriteTools } from './tools/sch-write-tools';
 import { registerLibTools } from './tools/lib-tools';
+import { registerManufactureTools } from './tools/manufacture-tools';
+import { registerPcbDrcTools } from './tools/pcb-drc-tools';
+import { registerPcbLayerTools } from './tools/pcb-layer-tools';
 
 const WS_PORT = Number(process.env.EDA_WS_PORT) || 15168;
 
@@ -25,6 +28,9 @@ async function main() {
 	registerSchReadTools(server, bridge);
 	registerSchWriteTools(server, bridge);
 	registerLibTools(server, bridge);
+	registerManufactureTools(server, bridge);
+	registerPcbDrcTools(server, bridge);
+	registerPcbLayerTools(server, bridge);
 
 	const transport = new StdioServerTransport();
 	await server.connect(transport);

@@ -10,6 +10,10 @@ import { schDocumentHandlers } from './handlers/sch-document';
 import { schSelectHandlers } from './handlers/sch-select';
 import { schPrimitiveHandlers } from './handlers/sch-primitive';
 import { libraryHandlers } from './handlers/library';
+import { pourFillHandlers } from './handlers/pour-fill';
+import { manufactureHandlers } from './handlers/manufacture';
+import { layerHandlers } from './handlers/layer';
+import { pcbPrimitiveHandlers } from './handlers/pcb-primitive';
 
 const WS_ID = 'mcp-bridge';
 const WS_URL = 'ws://localhost:15168';
@@ -27,6 +31,10 @@ const allHandlers: Record<string, (params: Record<string, any>) => Promise<any>>
 	...schSelectHandlers,
 	...schPrimitiveHandlers,
 	...libraryHandlers,
+	...pourFillHandlers,
+	...manufactureHandlers,
+	...layerHandlers,
+	...pcbPrimitiveHandlers,
 };
 
 export function connectToMcpServer(extensionUuid: string): void {

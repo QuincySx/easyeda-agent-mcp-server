@@ -96,7 +96,7 @@ export function registerSchWriteTools(server: McpServer, bridge: WebSocketBridge
 			supplierId: z.string().nullable().optional().describe('Supplier part number (e.g. LCSC C-number)'),
 		},
 		async ({ primitiveId, ...property }) => {
-			const result = await bridge.send('sch.component.modify', { primitiveId, ...property });
+			const result = await bridge.send('sch.component.modify', { primitiveId, property });
 			return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
 		},
 	);
@@ -168,7 +168,7 @@ export function registerSchWriteTools(server: McpServer, bridge: WebSocketBridge
 			if (lineType !== undefined) {
 				property.lineType = Number(lineType);
 			}
-			const result = await bridge.send('sch.wire.modify', { primitiveId, ...property });
+			const result = await bridge.send('sch.wire.modify', { primitiveId, property });
 			return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
 		},
 	);

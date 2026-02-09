@@ -2,66 +2,69 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import type { WebSocketBridge } from '../bridge';
 
+const GET_ALL_HANDLER_MAP: Record<string, string> = {
+	component: 'pcb.getAll.component',
+	track: 'pcb.getAll.line',
+	polyline: 'pcb.getAll.polyline',
+	via: 'pcb.getAll.via',
+	pad: 'pcb.getAll.pad',
+	pour: 'pcb.getAll.pour',
+	fill: 'pcb.getAll.fill',
+	arc: 'pcb.getAll.arc',
+	region: 'pcb.getAll.region',
+};
+
+const GET_BY_ID_HANDLER_MAP: Record<string, string> = {
+	component: 'pcb.get.component',
+	track: 'pcb.get.line',
+	polyline: 'pcb.get.polyline',
+	via: 'pcb.get.via',
+	pad: 'pcb.get.pad',
+	pour: 'pcb.get.pour',
+	fill: 'pcb.get.fill',
+	arc: 'pcb.get.arc',
+	region: 'pcb.get.region',
+};
+
+const PRIMITIVE_TYPES = [
+	'component',
+	'track',
+	'polyline',
+	'via',
+	'pad',
+	'pour',
+	'fill',
+	'arc',
+	'region',
+] as const;
+
 export function registerReadTools(server: McpServer, bridge: WebSocketBridge): void {
 	server.tool(
-		'pcb_get_all_components',
-		'Get all components on the PCB with their positions, rotations, layers, designators and properties',
+		'pcb_get_all_primitives',
+		`Get all primitives of a specific type on the PCB, with optional filters.
+Filters by type: component(layer), track/polyline/arc(net,layer), via(net), pad(layer,net), pour/fill(layer,net), region(layer)`,
 		{
+			type: z.enum(PRIMITIVE_TYPES).describe('Primitive type to query'),
+			net: z.string().optional().describe('Filter by net name'),
 			layer: z.string().optional().describe('Filter by layer (e.g. "TopLayer", "BottomLayer")'),
 		},
-		async ({ layer }) => {
-			const result = await bridge.send('pcb.getAll.component', { layer });
+		async ({ type, net, layer }) => {
+			const result = await bridge.send(GET_ALL_HANDLER_MAP[type], { net, layer });
 			return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
 		},
 	);
 
 	server.tool(
-		'pcb_get_all_tracks',
-		'Get all track segments (lines) on the PCB, optionally filtered by net and layer',
+		'pcb_get_primitives_by_id',
+		'Get one or more PCB primitives by their type and primitive ID(s)',
 		{
-			net: z.string().optional().describe('Filter by net name'),
-			layer: z.string().optional().describe('Filter by layer'),
+			type: z.enum(PRIMITIVE_TYPES).describe('Primitive type'),
+			primitiveIds: z
+				.union([z.string(), z.array(z.string())])
+				.describe('Single primitive ID or array of IDs'),
 		},
-		async ({ net, layer }) => {
-			const result = await bridge.send('pcb.getAll.line', { net, layer });
-			return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
-		},
-	);
-
-	server.tool(
-		'pcb_get_all_polyline_tracks',
-		'Get all polyline tracks on the PCB, optionally filtered by net and layer',
-		{
-			net: z.string().optional().describe('Filter by net name'),
-			layer: z.string().optional().describe('Filter by layer'),
-		},
-		async ({ net, layer }) => {
-			const result = await bridge.send('pcb.getAll.polyline', { net, layer });
-			return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
-		},
-	);
-
-	server.tool(
-		'pcb_get_all_vias',
-		'Get all vias on the PCB, optionally filtered by net',
-		{
-			net: z.string().optional().describe('Filter by net name'),
-		},
-		async ({ net }) => {
-			const result = await bridge.send('pcb.getAll.via', { net });
-			return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
-		},
-	);
-
-	server.tool(
-		'pcb_get_all_pads',
-		'Get all pads on the PCB, optionally filtered by layer, net and pad type',
-		{
-			layer: z.string().optional().describe('Filter by layer'),
-			net: z.string().optional().describe('Filter by net name'),
-		},
-		async ({ layer, net }) => {
-			const result = await bridge.send('pcb.getAll.pad', { layer, net });
+		async ({ type, primitiveIds }) => {
+			const result = await bridge.send(GET_BY_ID_HANDLER_MAP[type], { primitiveIds });
 			return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
 		},
 	);
